@@ -30,6 +30,7 @@ CPU::CPU() {
 	m = new Memory();
 	lp = new LinePrinter();
 	cr = new CardReader();
+	IC=0;
 }
 
 int CPU::load(){
@@ -42,6 +43,7 @@ int CPU::load(){
 		{
 			if(AMJ(buffer) && strlen(buffer)==17)
 			{
+				IC=0;
 				m->initialize();
 				BuffInitialize();
 				
@@ -53,15 +55,17 @@ int CPU::load(){
 					fgets(buffer,42,fp);					
 				}
 				fgets(buffer,42,fp);				
-				cout<<"Data Card\n";
+				//cout<<"Data Card\n";
 				while(!END(buffer)){
 					//cout<<buffer;
 					loadInBuffer(buffer);
 					fgets(buffer,42,fp);					
 				}
 				cout<<endl;
+				//BuffMap();
+				BuffPtr=0;
+				this->execute();
 				//m->memmap();
-				BuffMap();
 			}
 			else			
 			{
@@ -99,60 +103,77 @@ void CPU::start(char *fileName) {
 
 void CPU::execute() {
 	
-	char reg[4]; 
-
-	while(1)
-	{
-		m->read(IR,IC);
-		IC++;
-	
+	while(1) {
+		m->readByte(IR,IC);
+			
 		if(IR[0]=='G' && IR[1]=='D')
+		{
 			SI=1;	
-
-		else if(IR[0]=='P' && IR[1]=='D')
-			SI=2;	
-
-		else if(IR[0]=='H')
-			SI=3;	
-	
-		else if(IR[0]=='L' && IR[1]=='R')
-		{
-			m->read(R,atoi(IR+2));
-		}
-	
-		else if(IR[0]=='S' && IR[1]=='R')
-		{
-			m->store(R,atoi(IR+2));
-		}
-
-		else if(IR[0]=='C' && IR[1]=='R')
-		{
-			m->read(reg,atoi(IR+2));
+			this->mos();
 		}
 			
-		this->master();
+		else if(IR[0]=='P' && IR[1]=='D')
+		{
+			SI=2;
+			this->mos();
+		}
+		
+		else if(IR[0]=='H')
+		{
+			SI=3;		
+			this->mos();
+			break;
+		}
+		
+		else if(IR[0]=='L' && IR[1]=='R')
+		{
+			m->readByte(R,atoi(IR+2));
+		}
+		
+		else if(IR[0]=='S' && IR[1]=='R')
+		{		
+			//m->memmap();
+			m->writeByte(R,atoi(IR+2));
+			//m->memmap();
+		}
+		
+		else if(IR[0]=='C' && IR[1]=='R')
+		{
+			char reg[4];
+			int flag=0;
+			m->readByte(reg,atoi(IR+2));
+			//cout<<"REG:-"<<reg<<endl;
+			for(int i=0;i<4;i++)
+			{
+				if(R[i]!=reg[i]) {
+					flag=1;
+					break;
+				}
+			}
+				if(!flag)
+					C=1;
+		}
+		
+		else if(IR[0]=='B' && IR[1]=='T')
+		{
+			if(C)
+			IC=atoi(IR+2)-1;
+		}
+		
+		IC++;
 	}
-
-	//m->check();	
 }
 
-void CPU::master() {
+void CPU::mos() {
 
-
-	if(SI==1)
-	{
-		m->read(R,atoi(IR+2));
-		cout<<R<<endl;
-	}
-	
-	else if(SI==2)
-	{
-		m->readline(atoi(IR+2));
-	}
-
-	else if(SI==3)
-	{
-		cout<<"Program terminated\n";	
-		exit(1);
+	switch(SI) {
+		case 1: cr->buffToMem(atoi(IR+2));
+			break;
+			
+		case 2: lp->printLine(atoi(IR+2));
+			break;
+			
+		case 3: 
+			break;	
 	}
 }

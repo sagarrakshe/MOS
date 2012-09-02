@@ -7,7 +7,7 @@ class LinePrinter {
 	public:
 	
 	LinePrinter();
-	void print(int );
+	void printLine(int );
 
 };
 

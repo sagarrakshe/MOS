@@ -12,18 +12,18 @@ Memory::Memory() {
 
 void Memory::loadInMemory(char buffer[]) {
 
-	for(int i=0;i<strlen(buffer)-1;i++)
+	//cout<<strlen(buffer)<<endl;
+	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
 		memory[memPtr][i]=buffer[i];
 	memPtr++;
 }
 
-void Memory::read(char *IR, int IC) {
+void Memory::readByte(char *IR, int IC) {
 
 	int i,j=0;
-
-	for(i=(IC%10)*4;i<((IC%10)*4+4);i++)
-	IR[j++]=memory[IC/10][i];
-
+	for(i=(IC%10)*4;i<((IC%10)*4+4);i++) {
+		IR[j++]=memory[IC/10][i];
+	}
 }
 
 void Memory::initialize() {
@@ -54,7 +54,7 @@ void Memory::readline(int row) {
 
 }	
 
-void Memory::store(char *R,int row) {
+void Memory::writeByte(char *R,int row) {
 	
 	int j=0;
 	
@@ -62,5 +62,4 @@ void Memory::store(char *R,int row) {
 		memory[row/10][i]=R[j++];
 	}
 	
-
 }

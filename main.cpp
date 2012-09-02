@@ -9,6 +9,7 @@
 void BuffInitialize();
 void loadInBuffer(char *);
 void BuffMap();
+void readBuffer(char *);
 
 Memory *m;
 LinePrinter *lp;
@@ -29,7 +30,6 @@ int main(int argc, char *argv[])
 }
 
 void BuffInitialize() {
-	cout<<"Entered\n";
 	BuffPtr=0;
 	for(int i=0;i<10;i++)
 		for(int j=0;j<40;j++)
@@ -38,10 +38,9 @@ void BuffInitialize() {
 
 void loadInBuffer(char buffer[]) {
 
-	for(int i=0;i<strlen(buffer)-1;i++)
+	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
 		Buffer[BuffPtr][i]=buffer[i];
 	BuffPtr++;
-	
 }
 
 void BuffMap() {
@@ -51,5 +50,14 @@ void BuffMap() {
 			cout<<Buffer[i][j]<<" ";
 	}
 	cout<<endl;
+}
 
+void readBuffer(char *temp) {
+	int j=0;
+	
+	for(int i=0;i<40;i++)
+	temp[j++]=Buffer[BuffPtr%10][i];
+	temp[j]='\n';
+	//cout<<temp<<endl;
+	BuffPtr++;	
 }

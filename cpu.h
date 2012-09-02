@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "memory.h"
+#include "cardreader.h"
 
 using namespace std;
 
@@ -13,7 +14,7 @@ class CPU {
 	
 	FILE *fp;
 	char IR[4];
-	char R[4];
+	char R[5];
 	int IC;
 	bool C;
 
@@ -27,7 +28,7 @@ class CPU {
 	int load();
 	void start(char *);
 	void execute();
-	void master();
+	void mos();
 };
 
 #endif /*CPU_H*/

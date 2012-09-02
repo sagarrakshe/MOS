@@ -6,17 +6,17 @@
 class Memory {
 	
 	char memory[10][40];	
-	int memPtr;
 		
 	public:
+	int memPtr;
 
 	Memory();		
 	void initialize();
 	void loadInMemory(char *buffer);
-	void read(char *,int );
+	void readByte(char *,int );
 	void readline(int);
 	void memmap();
-	void store(char *, int);
+	void writeByte(char *, int);
 
 };
 #endif /**/
