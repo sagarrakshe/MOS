@@ -21,8 +21,9 @@ extern void BuffMap();
 
 #define AMJ(x) strstr(x,"$AMJ")
 #define H(x) strstr(x,"H")
-#define DTA(x) strstr(x,"$DTA")
-#define END(x) strstr(x,"$END")
+#define DTA(x) strstr(x,"DTA")
+#define END(x) strstr(x,"END")
+#define $(x) strstr(x,"$")
 
 using namespace std;
 
@@ -35,50 +36,64 @@ CPU::CPU() {
 
 int CPU::load(){
 	
-	int i=0;
+	int jobNum;
 	while(1) 
 	{	
 		fgets(buffer,42,fp);
 		if(!feof(fp))
 		{
+			cout<<"JOB:-"<<++jobNum<<endl;
 			if(AMJ(buffer) && strlen(buffer)==17)
 			{
 				IC=0;
 				m->initialize();
 				BuffInitialize();
 				
-				cout<<"JOB:-"<<++i<<endl;
 				fgets(buffer,42,fp);
 				//cout<<"Program Card\n";
 				while(!DTA(buffer)){
 					m->loadInMemory(buffer);
 					fgets(buffer,42,fp);					
 				}
-				fgets(buffer,42,fp);				
-				//cout<<"Data Card\n";
-				while(!END(buffer)){
+				
+				if($(buffer)){
+					fgets(buffer,42,fp);
+					//cout<<"Data Card\n";				
+					while(!END(buffer)){
 					//cout<<buffer;
 					loadInBuffer(buffer);
 					fgets(buffer,42,fp);					
-				}
-				cout<<endl;
-				//BuffMap();
-				BuffPtr=0;
-				this->execute();
-				//m->memmap();
-			}
-			else			
-			{
-				cout<<"Error in JOB:-"<<++i<<endl;
-				do{
-					fgets(buffer,42,fp);
-				}while(!END(buffer));
+					}
 				
+					if($(buffer) && strlen(buffer)==9) {
+						cout<<endl;
+						//BuffMap();
+						BuffPtr=0;
+						this->execute();
+						//m->memmap();
+					}
+					else{
+						cout<<"Syntax Error\n";
+						continue;
+					}
+				}
+				else{
+					cout<<"Syntax Error\n";
+					do{
+						fgets(buffer,42,fp);
+					}while(!END(buffer));
+				}
 			}
 			
+			else		
+			{
+				cout<<"Syntax Error\n";
+				do{
+					fgets(buffer,42,fp);
+				}while(!END(buffer));	
+			}	
 			cout<<endl;
 		}
-		
 		else
 			break;
 	}
