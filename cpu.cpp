@@ -32,6 +32,7 @@ CPU::CPU() {
 	lp = new LinePrinter();
 	cr = new CardReader();
 	IC=0;
+	output=fopen("outputFile","w+");
 }
 
 int CPU::load(){
@@ -73,12 +74,12 @@ int CPU::load(){
 						//m->memmap();
 					}
 					else{
-						cout<<"Syntax Error\n";
+						cout<<"Syntax Error"<<endl;
 						continue;
 					}
 				}
 				else{
-					cout<<"Syntax Error\n";
+					cout<<"Syntax Error"<<endl;
 					do{
 						fgets(buffer,42,fp);
 					}while(!END(buffer));
@@ -87,7 +88,7 @@ int CPU::load(){
 			
 			else		
 			{
-				cout<<"Syntax Error\n";
+				cout<<"Syntax Error"<<endl;
 				do{
 					fgets(buffer,42,fp);
 				}while(!END(buffer));	
@@ -185,10 +186,14 @@ void CPU::mos() {
 		case 1: cr->buffToMem(atoi(IR+2));
 			break;
 			
-		case 2: lp->printLine(atoi(IR+2));
+		case 2: lp->printLine(atoi(IR+2),output);
 			break;
 			
-		case 3: 
+		case 3:
+			fputc('\n',output);
+			fputc('\n',output);
 			break;	
 	}
 }
+
+
