@@ -13,4 +13,4 @@ step 4: make clean
 
 step 5: ./MOS sample
 
-You can replace sample with your <JobFile>.
+You can replace sample with your JobFile.
