@@ -1,6 +1,10 @@
 #ifndef ALU_H_
 #define ALU_H_
 
+#include <time.h>
+#include <stdlib.h>
+#include <iostream>
+
 class ALU {
 
 	public:

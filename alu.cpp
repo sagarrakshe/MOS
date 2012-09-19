@@ -1,10 +1,14 @@
 #include "alu.h"
-#include <iostream>
+
+using namespace std;
+
 ALU::ALU() {
 }
 
 int ALU::genRand() {
-	return 0;
+	
+	srand ( time(NULL) );
+	return rand()%30;
 }
 
 int ALU::addressMap() {
