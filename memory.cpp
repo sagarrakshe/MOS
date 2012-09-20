@@ -1,18 +1,29 @@
 #include <iostream>
 #include "memory.h"
 #include <string.h>
-	
+#include <time.h>
+#include <math.h>
+
 using namespace std;
+
+extern ALU *alu;
 
 Memory::Memory() {
 	/*Memory pointer set to 0*/
 	memPtr=0;
 	this->initialize();
+	bzero(frame,sizeof(frame));
 }
 
 void Memory::loadInMemory(char buffer[]) {
 
-	//cout<<strlen(buffer)<<endl;
+	int random;
+	//cout<<strlen(buffer)<<endl
+	do {
+		random=alu->genRand();
+	}while(frame[random]!=0);
+
+
 	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
 		memory[memPtr][i]=buffer[i];
 	memPtr++;
@@ -32,7 +43,7 @@ void Memory::initialize() {
 	/*Memory initialized to 0*/
 	for(int i=0;i<10;i++)
 	for(int j=0;j<40;j++)
-		memory[i][j]='*';
+		memory[i][j]=' ';
 }
 
 void Memory::memmap() {
@@ -44,14 +55,10 @@ void Memory::memmap() {
 	cout<<endl;
 }
 
-void Memory::readline(int row) {
+void Memory::readline(int row, char *content) {
 	
 	for(int i=0;i<40;i++)
-	{
-		//bf[i]=memory[line/10][i];
-		cout<<memory[row/10][i];
-	}
-
+		content[i]=memory[row/10][i];
 }	
 
 void Memory::writeByte(char *R,int row) {
