@@ -2,6 +2,7 @@
 #include "cardreader.h"
 #include "cpu.h"
 #include "memory.h"
+#include "alu.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@
 extern Memory *m;
 extern LinePrinter *lp;
 extern CardReader *cr;
+extern ALU *alu;
 extern char Buffer[10][40];
 extern int BuffPtr;
 
@@ -46,6 +48,9 @@ int CPU::load(){
 			cout<<"JOB:-"<<++jobNum<<endl;
 			if(AMJ(buffer) && strlen(buffer)==17)
 			{
+				strcpy(buffer,buffer+4);
+				this->initialize_pcb(buffer);
+
 				IC=0;
 				m->initialize();
 				BuffInitialize();
@@ -85,7 +90,6 @@ int CPU::load(){
 					}while(!END(buffer));
 				}
 			}
-			
 			else		
 			{
 				cout<<"Syntax Error"<<endl;
@@ -98,7 +102,6 @@ int CPU::load(){
 		else
 			break;
 	}
-
 	return 0;
 }
 
@@ -119,6 +122,8 @@ void CPU::start(char *fileName) {
 
 void CPU::execute() {
 	
+	//char operand[2];
+
 	while(1) {
 		m->readByte(IR,IC);
 			
@@ -126,32 +131,25 @@ void CPU::execute() {
 		{
 			SI=1;	
 			this->mos();
-		}
-			
+		}	
 		else if(IR[0]=='P' && IR[1]=='D')
 		{
 			SI=2;
 			this->mos();
 		}
-		
+
 		else if(IR[0]=='H')
 		{
 			SI=3;		
 			this->mos();
 			break;
 		}
-		
+
 		else if(IR[0]=='L' && IR[1]=='R')
-		{
 			m->readByte(R,atoi(IR+2));
-		}
 		
 		else if(IR[0]=='S' && IR[1]=='R')
-		{		
-			//m->memmap();
 			m->writeByte(R,atoi(IR+2));
-			//m->memmap();
-		}
 		
 		else if(IR[0]=='C' && IR[1]=='R')
 		{
@@ -175,6 +173,11 @@ void CPU::execute() {
 			if(C)
 			IC=atoi(IR+2)-1;
 		}
+
+		else {
+			PI=1;
+			this->mos();
+		}
 		
 		IC++;
 	}
@@ -194,6 +197,37 @@ void CPU::mos() {
 			fputc('\n',output);
 			break;	
 	}
+
+	switch(PI) {
+		case 1:	cout<<"Operation Error!\n";
+			//msg and exit and same for all
+			exit(2);
+		
+		case 2: cout<<"Operand Error!n";
+			break;
+
+		case 3:	cout<<"Page Fault!\n";
+	}
 }
 
+void CPU::initialize_pcb(char *buffer) {
+	char temp[5];
 
+	strncpy(temp,buffer,4);
+	PCB.jobId=atoi(temp);
+	//cout<<PCB.jobId<<endl;
+	strcpy(buffer,buffer+4);
+
+	strncpy(temp,buffer,4);
+	PCB.TTL=atoi(temp);
+	//cout<<PCB.TTL<<endl;
+	strcpy(buffer,buffer+4);
+
+	strncpy(temp,buffer,4);
+	PCB.TLL=atoi(temp);
+	//cout<<PCB.TLL<<endl;
+	strcpy(buffer,buffer+4);
+
+	cout<<"IN PCB initialization"<<alu->genRand();
+	
+}

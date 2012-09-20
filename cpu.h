@@ -7,12 +7,30 @@
 
 using namespace std;
 
+struct ProgramControlBlock {
+	int jobId;
+	
+	int TTL;
+	int TLL;
+
+	int TTC;
+	int TLC;
+
+	int PTR;
+};
+
 class CPU {
 
 	//Interrupts
 	int SI;
+	int PI;
+
+	//program control block
+	struct ProgramControlBlock PCB;	
 	
+
 	FILE *fp;
+	FILE *output;
 	char IR[4];
 	char R[5];
 	int IC;
@@ -29,6 +47,7 @@ class CPU {
 	void start(char *);
 	void execute();
 	void mos();
+	void initialize_pcb(char *);
 };
 
 #endif /*CPU_H*/
