@@ -1,5 +1,8 @@
-MOS: main.o cpu.o memory.o lineprinter.o cardreader.o
-	g++ -Wall -o MOS main.o cpu.o memory.o lineprinter.o cardreader.o
+MOS: main.o cpu.o memory.o lineprinter.o cardreader.o alu.o
+	g++ -Wall -o MOS main.o cpu.o memory.o lineprinter.o cardreader.o alu.o
+
+alu.o: alu.cpp alu.h
+	g++ -Wall -g -c alu.cpp
 
 cardreader.o: cardreader.cpp cardreader.h
 	g++ -Wall -g -c cardreader.cpp

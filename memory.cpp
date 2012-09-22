@@ -5,6 +5,7 @@
 #include <math.h>
 
 using namespace std;
+#define LINE cout<<"------------";
 
 extern ALU *alu;
 
@@ -13,28 +14,6 @@ Memory::Memory() {
 	memPtr=0;
 	this->initialize();
 	bzero(frame,sizeof(frame));
-}
-
-void Memory::loadInMemory(char buffer[]) {
-
-	int random;
-	//cout<<strlen(buffer)<<endl
-	do {
-		random=alu->genRand();
-	}while(frame[random]!=0);
-
-
-	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
-		memory[memPtr][i]=buffer[i];
-	memPtr++;
-}
-
-void Memory::readByte(char *IR, int IC) {
-
-	int i,j=0;
-	for(i=(IC%10)*4;i<((IC%10)*4+4);i++) {
-		IR[j++]=memory[IC/10][i];
-	}
 }
 
 void Memory::initialize() {
@@ -48,25 +27,56 @@ void Memory::initialize() {
 
 void Memory::memmap() {
 	for(int i=0;i<10;i++) {
-		cout<<endl<<"\t";
-		for(int j=0;j<40;j++)
-			cout<<memory[i][j]<<"  ";
+		LINE;
+		for(int j=0;j<40;j++) {
+			if(!(j%4))
+				cout<<endl;
+			cout<<" "<<memory[i][j]<<" ";
+		}
+		cout<<endl;
 	}
 	cout<<endl;
 }
 
-void Memory::readline(int row, char *content) {
-	
+/*PageTableRegister allocated and initialized*/
+void Memory::ptr_initialize(int page) {
+
+	for(int i=0;i<40;i++)
+		memory[page][i]='*';
+}
+
+void Memory::loadInMemory(char buffer[]) {
+
+//	int random;
+	//cout<<strlen(buffer)<<endl
+	/*
+	do {
+		random=alu->genRand();
+	}while(frame[random]!=0);
+	*/
+
+	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
+		memory[memPtr][i]=buffer[i];
+	memPtr++;
+}
+
+/*Read Instruction from Memory*/
+void Memory::readByte(char *IR, int IC) {
+
+	int i,j=0;
+	for(i=(IC%10)*4;i<((IC%10)*4+4);i++) {
+		IR[j++]=memory[IC/10][i];
+	}
+}
+
+void Memory::readline(int row, char *content) {	
 	for(int i=0;i<40;i++)
 		content[i]=memory[row/10][i];
 }	
 
 void Memory::writeByte(char *R,int row) {
-	
 	int j=0;
-	
 	for(int i=(row%10)*4;i<(row%10)*4+4;i++){
 		memory[row/10][i]=R[j++];
 	}
-	
 }

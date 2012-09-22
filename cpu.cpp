@@ -9,23 +9,28 @@
 #include <errno.h>
 #include <string.h>
 
-extern Memory *m;
-extern LinePrinter *lp;
-extern CardReader *cr;
-extern ALU *alu;
-extern char Buffer[10][40];
-extern int BuffPtr;
-
-extern void BuffInitialize();
-extern void loadInBuffer(char *);
-extern void BuffMap();
-//extern CPU *c;
-
+/*Definations for Error-Checking*/
 #define AMJ(x) strstr(x,"$AMJ")
 #define H(x) strstr(x,"H")
 #define DTA(x) strstr(x,"DTA")
 #define END(x) strstr(x,"END")
 #define $(x) strstr(x,"$")
+
+/*All global objects imported*/
+extern Memory *m;
+extern LinePrinter *lp;
+extern CardReader *cr;
+extern ALU *alu;
+
+/*Buffer and Buffer-Pointer imported*/
+extern char Buffer[10][40];
+extern int BuffPtr;
+
+/*Buffer Functions imported*/
+extern void BuffInitialize();
+extern void loadInBuffer(char *);
+extern void BuffMap();
+//extern CPU *c;
 
 using namespace std;
 
@@ -34,43 +39,43 @@ CPU::CPU() {
 	lp = new LinePrinter();
 	cr = new CardReader();
 	IC=0;
-	output=fopen("outputFile","w+");
+	output=fopen("outputFile","w+");	//output of all jobs is stored in it
 }
 
 int CPU::load(){
 	
-	int jobNum;
 	while(1) 
 	{	
 		fgets(buffer,42,fp);
 		if(!feof(fp))
 		{
-			cout<<"JOB:-"<<++jobNum<<endl;
+			/*$AMJ-Syntax checking*/
 			if(AMJ(buffer) && strlen(buffer)==17)
 			{
-				strcpy(buffer,buffer+4);
-				this->initialize_pcb(buffer);
-
 				IC=0;
 				m->initialize();
 				BuffInitialize();
-				
+
+				/*PCB initialization*/
+				strcpy(buffer,buffer+4);
+				this->initialize_pcb(buffer);
+				this->display_pcb();
+
 				fgets(buffer,42,fp);
-				//cout<<"Program Card\n";
+				/*Program Card in Main Memory*/
 				while(!DTA(buffer)){
 					m->loadInMemory(buffer);
 					fgets(buffer,42,fp);					
 				}
-				
+				/*$DTA-Syntax Checking*/
 				if($(buffer)){
 					fgets(buffer,42,fp);
-					//cout<<"Data Card\n";				
+					/*Data Card in Buffer*/
 					while(!END(buffer)){
-					//cout<<buffer;
-					loadInBuffer(buffer);
-					fgets(buffer,42,fp);					
+						loadInBuffer(buffer);
+						fgets(buffer,42,fp);					
 					}
-				
+					/*$END-Syntax Checking*/
 					if($(buffer) && strlen(buffer)==9) {
 						cout<<endl;
 						//BuffMap();
@@ -79,12 +84,12 @@ int CPU::load(){
 						//m->memmap();
 					}
 					else{
-						cout<<"Syntax Error"<<endl;
+						cout<<"Syntax Error: END"<<endl;
 						continue;
 					}
 				}
 				else{
-					cout<<"Syntax Error"<<endl;
+					cout<<"Syntax Error: DTA"<<endl;
 					do{
 						fgets(buffer,42,fp);
 					}while(!END(buffer));
@@ -92,12 +97,12 @@ int CPU::load(){
 			}
 			else		
 			{
-				cout<<"Syntax Error"<<endl;
+				cout<<"Syntax Error: AMJ"<<endl;
 				do{
 					fgets(buffer,42,fp);
 				}while(!END(buffer));	
 			}	
-			cout<<endl;
+			//cout<<endl;
 		}
 		else
 			break;
@@ -109,24 +114,23 @@ void CPU::start(char *fileName) {
 	
 	fp=fopen(fileName,"r");
 	
-	/*check for file opening*/
+	/*Check for correct file*/
 	if(!fp) {
 		perror("Error: ");
 		exit(1);	
 	}
-	
-	/*after succesfully opening call load function to load in mem.*/
+	/*Load in Main Memory and Buffer*/
 	this->load();
 }
 
 
 void CPU::execute() {
 	
-	//char operand[2];
 
 	while(1) {
+		/*Read Memory Byte-by-Byte (IR)*/
 		m->readByte(IR,IC);
-			
+		
 		if(IR[0]=='G' && IR[1]=='D')
 		{
 			SI=1;	
@@ -156,7 +160,6 @@ void CPU::execute() {
 			char reg[4];
 			int flag=0;
 			m->readByte(reg,atoi(IR+2));
-			//cout<<"REG:-"<<reg<<endl;
 			for(int i=0;i<4;i++)
 			{
 				if(R[i]!=reg[i]) {
@@ -178,7 +181,7 @@ void CPU::execute() {
 			PI=1;
 			this->mos();
 		}
-		
+
 		IC++;
 	}
 }
@@ -186,9 +189,10 @@ void CPU::execute() {
 void CPU::mos() {
 
 	switch(SI) {
+				/*Load data from Buffer to Memory*/
 		case 1: cr->buffToMem(atoi(IR+2));
 			break;
-			
+				/*Print data in output-file*/
 		case 2: lp->printLine(atoi(IR+2),output);
 			break;
 			
@@ -199,8 +203,8 @@ void CPU::mos() {
 	}
 
 	switch(PI) {
+
 		case 1:	cout<<"Operation Error!\n";
-			//msg and exit and same for all
 			exit(2);
 		
 		case 2: cout<<"Operand Error!n";
@@ -214,20 +218,25 @@ void CPU::initialize_pcb(char *buffer) {
 	char temp[5];
 
 	strncpy(temp,buffer,4);
-	PCB.jobId=atoi(temp);
-	//cout<<PCB.jobId<<endl;
+	PCB.jobId = atoi(temp);
 	strcpy(buffer,buffer+4);
 
 	strncpy(temp,buffer,4);
-	PCB.TTL=atoi(temp);
-	//cout<<PCB.TTL<<endl;
+	PCB.TTL = atoi(temp);
 	strcpy(buffer,buffer+4);
 
 	strncpy(temp,buffer,4);
-	PCB.TLL=atoi(temp);
-	//cout<<PCB.TLL<<endl;
+	PCB.TLL = atoi(temp);
 	strcpy(buffer,buffer+4);
 
-	cout<<"IN PCB initialization"<<alu->genRand();
-	
+	PCB.PTR = alu->genRand();
+	//m->ptr_initialize(PCB.PTR);	
+}
+
+void CPU::display_pcb() {
+
+	cout<<"ID:-\t"<<PCB.jobId<<endl;
+	cout<<"TTL:-\t"<<PCB.TTL<<endl;
+	cout<<"TLL:-\t"<<PCB.TLL<<endl;
+	cout<<"PTR:-\t"<<PCB.PTR<<endl;
 }

@@ -1,0 +1,1 @@
+./MOS $1 && cat outputFile

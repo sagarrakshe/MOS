@@ -1,5 +1,5 @@
-#ifndef CARDREADER_H
-#define CARDREADER_H
+#ifndef CARDREADER_H_
+#define CARDREADER_H_
 
 #include "memory.h"
 
@@ -13,4 +13,4 @@ class CardReader {
 		void buffToMem(int );
 };
 
-#endif
+#endif /*CARDREADER_H_*/

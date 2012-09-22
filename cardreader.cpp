@@ -13,9 +13,9 @@ extern void BuffMap();
 extern void readBuffer(char *);
 
 CardReader::CardReader() {
-
 }
 
+/*Buffer-to-Memory*/
 void CardReader::buffToMem(int loc) {
 	readBuffer(str);
 	m->memPtr=loc/10;

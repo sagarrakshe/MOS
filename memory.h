@@ -19,6 +19,7 @@ class Memory {
 	void readline(int ,char *);
 	void memmap();
 	void writeByte(char *, int);
+	void ptr_initialize(int );
 
 };
-#endif /**/
+#endif /*MEMORY_H_*/

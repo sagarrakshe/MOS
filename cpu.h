@@ -21,13 +21,12 @@ struct ProgramControlBlock {
 
 class CPU {
 
-	//Interrupts
+	/*Interrupts*/
 	int SI;
 	int PI;
 
-	//program control block
+	/*Program Control Block*/
 	struct ProgramControlBlock PCB;	
-	
 
 	FILE *fp;
 	FILE *output;
@@ -48,6 +47,7 @@ class CPU {
 	void execute();
 	void mos();
 	void initialize_pcb(char *);
+	void display_pcb();
 };
 
 #endif /*CPU_H*/
