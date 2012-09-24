@@ -24,7 +24,7 @@ void BuffInitialize() {
 	BuffPtr=0;
 	for(int i=0;i<30;i++)
 		for(int j=0;j<40;j++)
-          Buffer[i][j]=' ';
+          Buffer[i][j]='~';
 }
 
 void loadInBuffer(char buffer[]) {

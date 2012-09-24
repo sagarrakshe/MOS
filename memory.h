@@ -6,20 +6,22 @@
 
 class Memory {
 	
-	char memory[10][40];	
+	char memory[30][40];	
 	int frame[30];
 		
 	public:
 	int memPtr;
+	int ptrPage;	//PageTableRegisterPage
 
 	Memory();		
 	void initialize();
 	void loadInMemory(char *buffer);
-	void readByte(char *,int );
+	void readByte(int , char *, int );
 	void readline(int ,char *);
 	void memmap();
 	void writeByte(char *, int);
-	void ptr_initialize(int );
+	int ptr_initialize();
+	int instrLen();
 
 };
 #endif /*MEMORY_H_*/

@@ -5,32 +5,29 @@
 #include <math.h>
 
 using namespace std;
-#define LINE cout<<"------------";
 
 extern ALU *alu;
 
 Memory::Memory() {
 	/*Memory pointer set to 0*/
-	memPtr=0;
 	this->initialize();
 	bzero(frame,sizeof(frame));
 }
 
 void Memory::initialize() {
-	
+
 	memPtr=0;
 	/*Memory initialized to 0*/
-	for(int i=0;i<10;i++)
+	for(int i=0;i<30;i++)
 	for(int j=0;j<40;j++)
-		memory[i][j]=' ';
+		memory[i][j]='~';
 }
 
 void Memory::memmap() {
-	for(int i=0;i<10;i++) {
-		LINE;
+	for(int i=0;i<30;i++) {
+		cout<<i<<"  ";
 		for(int j=0;j<40;j++) {
-			if(!(j%4))
-				cout<<endl;
+			if(!(j%4))	cout<<"|";
 			cout<<" "<<memory[i][j]<<" ";
 		}
 		cout<<endl;
@@ -39,39 +36,52 @@ void Memory::memmap() {
 }
 
 /*PageTableRegister allocated and initialized*/
-void Memory::ptr_initialize(int page) {
+int Memory::ptr_initialize() {
+
+	int page;
+	page = alu->genRand();
 
 	for(int i=0;i<40;i++)
-		memory[page][i]='*';
+		memory[page][i]='@';
+	frame[page]=1;
+	ptrPage = page;
+
+	return page;
+}
+
+int Memory::instrLen() {
+	return memPtr;
 }
 
 void Memory::loadInMemory(char buffer[]) {
-
-//	int random;
-	//cout<<strlen(buffer)<<endl
-	/*
+	
+	int randPage;
+	
 	do {
-		random=alu->genRand();
-	}while(frame[random]!=0);
-	*/
+		randPage=alu->genRand();
+	}while(frame[randPage]!=0);
+	frame[randPage] = 1;
 
 	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
-		memory[memPtr][i]=buffer[i];
+		memory[randPage][i]=buffer[i];
+	//cout<<randPage/10<<randPage%10<<endl;
+	memory[ptrPage][((memPtr%4)*4)+2] = (char)(((int)'0')+randPage/10);
+	memory[ptrPage][((memPtr%4)*4)+3] = (char)(((int)'0')+randPage%10);
 	memPtr++;
 }
 
 /*Read Instruction from Memory*/
-void Memory::readByte(char *IR, int IC) {
+void Memory::readByte(int IC, char *IR, int page) {
 
 	int i,j=0;
-	for(i=(IC%10)*4;i<((IC%10)*4+4);i++) {
-		IR[j++]=memory[IC/10][i];
+	for(i=(IC%10)*4;i<((IC%10)*4+4);i++,j++) {
+		IR[j]=memory[page][i];
 	}
 }
 
 void Memory::readline(int row, char *content) {	
 	for(int i=0;i<40;i++)
-		content[i]=memory[row/10][i];
+		content[i]=memory[row][i];
 }	
 
 void Memory::writeByte(char *R,int row) {

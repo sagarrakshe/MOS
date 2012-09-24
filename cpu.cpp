@@ -72,16 +72,15 @@ int CPU::load(){
 					fgets(buffer,42,fp);
 					/*Data Card in Buffer*/
 					while(!END(buffer)){
-						loadInBuffer(buffer);
+						//loadInBuffer(buffer);
 						fgets(buffer,42,fp);					
 					}
 					/*$END-Syntax Checking*/
 					if($(buffer) && strlen(buffer)==9) {
-						cout<<endl;
 						//BuffMap();
+						m->memmap();
 						BuffPtr=0;
 						this->execute();
-						//m->memmap();
 					}
 					else{
 						cout<<"Syntax Error: END"<<endl;
@@ -126,9 +125,21 @@ void CPU::start(char *fileName) {
 
 void CPU::execute() {
 	
+	char temp[40];
+	int page;
 
+	m->readline(PCB.PTR, temp);
+	for(int i=0; i<m->instrLen();i++) {
+		m->readByte(i, IR, PCB.PTR);
+		page = atoi(IR+2);
+		for(int j=0; j<10; j++) {
+			m->readByte(j, IR, page);
+			cout<< IR <<endl;
+		}
+	}
+	/*
 	while(1) {
-		/*Read Memory Byte-by-Byte (IR)*/
+		//Read Memory Byte-by-Byte (IR)
 		m->readByte(IR,IC);
 		
 		if(IR[0]=='G' && IR[1]=='D')
@@ -184,6 +195,7 @@ void CPU::execute() {
 
 		IC++;
 	}
+	*/
 }
 
 void CPU::mos() {
@@ -229,8 +241,7 @@ void CPU::initialize_pcb(char *buffer) {
 	PCB.TLL = atoi(temp);
 	strcpy(buffer,buffer+4);
 
-	PCB.PTR = alu->genRand();
-	//m->ptr_initialize(PCB.PTR);	
+	PCB.PTR = m->ptr_initialize();	
 }
 
 void CPU::display_pcb() {

@@ -9,7 +9,7 @@ ALU::ALU() {
 int ALU::genRand() {
 	
 	srand ( time(NULL) );
-	return rand()%10;
+	return rand()%30;
 }
 
 /*Map Virtual address into Real address*/
