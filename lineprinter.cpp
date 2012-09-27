@@ -11,7 +11,7 @@ LinePrinter::LinePrinter() {
 }
 
 /*Write output to the outputFile*/
-void LinePrinter::printLine(int line,FILE *fp) {
+void LinePrinter::printLine(int line, FILE *fp) {
 	m->readline(line,content);
 	fputs(content,fp);
 	fputc('\n',fp);

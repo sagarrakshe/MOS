@@ -34,6 +34,7 @@ class CPU {
 	char R[5];
 	int IC;
 	bool C;
+	int realAddress;
 
 	char buffer[100];
 	int mode; //0-Master;1-Slave
@@ -45,6 +46,7 @@ class CPU {
 	int load();
 	void start(char *);
 	void execute();
+	int userMode(char *);
 	void mos();
 	void initialize_pcb(char *);
 	void display_pcb();

@@ -9,7 +9,6 @@
 
 using namespace std;
 
-
 /*Created all objects global*/
 Memory *m;
 LinePrinter *lp;

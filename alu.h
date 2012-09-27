@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
+#include "memory.h"
 
 class ALU {
 
@@ -11,7 +12,7 @@ class ALU {
 	
 	ALU();
 	int genRand();
-	int addressMap();
+	int addressMap(int ,int );
 };
 
 #endif /*ALU_H_*/

@@ -7,11 +7,11 @@
 class Memory {
 	
 	char memory[30][40];	
-	int frame[30];
 		
 	public:
 	int memPtr;
 	int ptrPage;	//PageTableRegisterPage
+	int frame[30];
 
 	Memory();		
 	void initialize();
@@ -19,9 +19,10 @@ class Memory {
 	void readByte(int , char *, int );
 	void readline(int ,char *);
 	void memmap();
-	void writeByte(char *, int);
+	void writeByte(int , char *, int, int );
 	int ptr_initialize();
 	int instrLen();
+	void dispFrame();
 
 };
 #endif /*MEMORY_H_*/

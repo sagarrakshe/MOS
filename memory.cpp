@@ -37,7 +37,6 @@ void Memory::memmap() {
 
 /*PageTableRegister allocated and initialized*/
 int Memory::ptr_initialize() {
-
 	int page;
 	page = alu->genRand();
 
@@ -65,8 +64,9 @@ void Memory::loadInMemory(char buffer[]) {
 	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
 		memory[randPage][i]=buffer[i];
 	//cout<<randPage/10<<randPage%10<<endl;
-	memory[ptrPage][((memPtr%4)*4)+2] = (char)(((int)'0')+randPage/10);
-	memory[ptrPage][((memPtr%4)*4)+3] = (char)(((int)'0')+randPage%10);
+	memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
+	memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
+	//cout<<"memPtr: "<<memPtr<<endl;
 	memPtr++;
 }
 
@@ -79,14 +79,35 @@ void Memory::readByte(int IC, char *IR, int page) {
 	}
 }
 
+void Memory::writeByte(int IC, char *R, int page, int flag) {
+	int randPage,j=0;
+
+	if(flag) {
+		do {
+			randPage=alu->genRand();
+		}while(frame[randPage]!=0);
+		frame[randPage] = 1;	
+		
+		memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
+		memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
+		memPtr++;
+
+		page = randPage;
+
+	}
+
+	for(int i=(IC%10)*4;i<(IC%10)*4+4;i++){
+		memory[page][i]=R[j++];
+	}
+}
+
 void Memory::readline(int row, char *content) {	
 	for(int i=0;i<40;i++)
 		content[i]=memory[row][i];
 }	
 
-void Memory::writeByte(char *R,int row) {
-	int j=0;
-	for(int i=(row%10)*4;i<(row%10)*4+4;i++){
-		memory[row/10][i]=R[j++];
-	}
+void Memory::dispFrame() {
+	for (int i = 0; i < 30; ++i)
+		cout<<frame[i]<<" ";
+	cout<<endl;
 }

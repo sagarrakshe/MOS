@@ -72,13 +72,13 @@ int CPU::load(){
 					fgets(buffer,42,fp);
 					/*Data Card in Buffer*/
 					while(!END(buffer)){
-						//loadInBuffer(buffer);
+						loadInBuffer(buffer);
 						fgets(buffer,42,fp);					
 					}
 					/*$END-Syntax Checking*/
 					if($(buffer) && strlen(buffer)==9) {
 						//BuffMap();
-						m->memmap();
+						//m->memmap();
 						BuffPtr=0;
 						this->execute();
 					}
@@ -106,6 +106,8 @@ int CPU::load(){
 		else
 			break;
 	}
+
+	m->memmap();
 	return 0;
 }
 
@@ -122,95 +124,135 @@ void CPU::start(char *fileName) {
 	this->load();
 }
 
-
 void CPU::execute() {
 	
 	char temp[40];
-	int page;
+	int page,retVal=-1,j;
 
 	m->readline(PCB.PTR, temp);
 	for(int i=0; i<m->instrLen();i++) {
 		m->readByte(i, IR, PCB.PTR);
 		page = atoi(IR+2);
-		for(int j=0; j<10; j++) {
+		if(retVal!=-1)
+			j=retVal%10;
+		else
+			j=0;
+		for(; j<10; j++) {
+			cout <<"IR: "<<IR<<endl;
 			m->readByte(j, IR, page);
-			cout<< IR <<endl;
+			retVal = userMode(IR);
+			if(retVal!=-1){
+				i = (retVal/10)-1;
+				break;
+			}
 		}
 	}
-	/*
-	while(1) {
-		//Read Memory Byte-by-Byte (IR)
-		m->readByte(IR,IC);
-		
-		if(IR[0]=='G' && IR[1]=='D')
-		{
-			SI=1;	
-			this->mos();
-		}	
-		else if(IR[0]=='P' && IR[1]=='D')
-		{
-			SI=2;
-			this->mos();
-		}
+}
 
-		else if(IR[0]=='H')
-		{
-			SI=3;		
-			this->mos();
-			break;
-		}
+int CPU::userMode(char *IR) {
+	
+	if(IR[0]=='G' && IR[1]=='D')
+	{
+		//cout<<"Exe: GD"<<endl;
+		SI=1;	
+		this->mos();
+	}	
+	
+	else if(IR[0]=='P' && IR[1]=='D')
+	{
+		//cout<<"Exe: PD"<<endl;
+		SI=2;
+		realAddress = alu->addressMap(atoi(IR+2), PCB.PTR);
+		this->mos();
+	}
+	
+	else if(IR[0]=='H')
+	{
+		//cout<<"Exe: H"<<endl;
+		SI=3;		
+		this->mos();
+	}
 
-		else if(IR[0]=='L' && IR[1]=='R')
-			m->readByte(R,atoi(IR+2));
-		
-		else if(IR[0]=='S' && IR[1]=='R')
-			m->writeByte(R,atoi(IR+2));
-		
-		else if(IR[0]=='C' && IR[1]=='R')
+	else if(IR[0]=='L' && IR[1]=='R') {
+		//cout<<"Exe: LR"<<endl;
+		if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
 		{
-			char reg[4];
+			m->readByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR));
+			//cout<<R<<endl;
+		}
+		else {
+			cout << "Error: LR-address\n";
+			exit(2);
+		}
+	}
+	
+	else if(IR[0]=='S' && IR[1]=='R') {
+		if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
+			m->writeByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR),0);
+		//Dynamically Allocating 
+		else{
+			m->writeByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR),1);
+			cout<<"-SR\n";
+		}
+	}
+
+	else if(IR[0]=='C' && IR[1]=='R')
+	{
+			char reg[5];
 			int flag=0;
-			m->readByte(reg,atoi(IR+2));
-			for(int i=0;i<4;i++)
+			
+			if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
 			{
-				if(R[i]!=reg[i]) {
-					flag=1;
-					break;
+				m->readByte(atoi(IR+2), reg, alu->addressMap(atoi(IR+2), PCB.PTR));
+	
+				for(int i=0;i<4;i++)
+				{
+					if(R[i]!=reg[i]) {
+						flag=1;
+						break;
+					}	
 				}
-			}
 				if(!flag)
 					C=1;
-		}
-		
-		else if(IR[0]=='B' && IR[1]=='T')
-		{
-			if(C)
-			IC=atoi(IR+2)-1;
-		}
+			}
+			
+			else{
+				cout<<"-CR\n";
+				exit(2);
+			}
 
-		else {
-			PI=1;
-			this->mos();
-		}
-
-		IC++;
+		//cout<<"C: "<<C<<endl;								
 	}
-	*/
+
+	else if(IR[0]=='B' && IR[1]=='T') 
+	{
+		if(C) 
+			return atoi(IR+2);
+	}
+/*
+	else 
+	{
+		cout<<IR<<endl;
+		PI=1;
+		this->mos();
+	}
+*/
+	return -1;
 }
 
 void CPU::mos() {
 
 	switch(SI) {
-				/*Load data from Buffer to Memory*/
+		
+		/*Load data from Buffer to Memory*/
 		case 1: cr->buffToMem(atoi(IR+2));
 			break;
-				/*Print data in output-file*/
-		case 2: lp->printLine(atoi(IR+2),output);
+				
+		/*Print data in output-file*/
+		case 2: lp->printLine(realAddress,output);
 			break;
 			
 		case 3:
-			fputc('\n',output);
-			fputc('\n',output);
 			break;	
 	}
 
