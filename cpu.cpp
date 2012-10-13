@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "alu.h"
+#include "terminate.cpp"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,8 +39,13 @@ CPU::CPU() {
 	m = new Memory();
 	lp = new LinePrinter();
 	cr = new CardReader();
+	IR = new char();
+	R = new char();
 	IC=0;
 	output=fopen("outputFile","w+");	//output of all jobs is stored in it
+	SI = 0;
+	PI = 0;
+	TI = 0;
 }
 
 int CPU::load(){
@@ -64,7 +70,7 @@ int CPU::load(){
 				fgets(buffer,42,fp);
 				/*Program Card in Main Memory*/
 				while(!DTA(buffer)){
-					m->loadInMemory(buffer);
+					m->loadInMemory(buffer,0);
 					fgets(buffer,42,fp);					
 				}
 				/*$DTA-Syntax Checking*/
@@ -106,8 +112,6 @@ int CPU::load(){
 		else
 			break;
 	}
-
-	m->memmap();
 	return 0;
 }
 
@@ -126,146 +130,190 @@ void CPU::start(char *fileName) {
 
 void CPU::execute() {
 	
-	char temp[40];
-	int page,retVal=-1,j;
+	char *temp = new char();
+	int tempPage,j,branch=-1, page;
 
-	m->readline(PCB.PTR, temp);
-	for(int i=0; i<m->instrLen();i++) {
-		m->readByte(i, IR, PCB.PTR);
-		page = atoi(IR+2);
-		if(retVal!=-1)
-			j=retVal%10;
-		else
+	IC=0;
+	terminate = 0;
+	for (int i=0; i<m->instrLen();++i) {
+		
+		if(branch==-1)
 			j=0;
-		for(; j<10; j++) {
-			cout <<"IR: "<<IR<<endl;
-			m->readByte(j, IR, page);
-			retVal = userMode(IR);
-			if(retVal!=-1){
-				i = (retVal/10)-1;
+
+		else{
+			cout<<"Branched!\n";
+			i=branch/10;
+			j=(branch%10);
+		}
+
+		temp = m->readByte(i, PCB.PTR);
+		tempPage = atoi(temp+2);
+
+		for(; j<10; ++j) {
+			branch = -1;
+
+			IR = m->readByte(j, tempPage);
+			cout<<"IC:"<<IC<<"\t";
+			cout<<"Executing: "<<IR<<endl;
+			PCB.TTC++;
+			
+			if(IR[0]=='G' && IR[1]=='D')
+				SI=1;
+
+			else if(IR[0]=='P' && IR[1]=='D'){
+				PCB.TLC++;
+				SI=2;
+				page = alu->addressMap(atoi(IR+2), PCB.PTR);
+				if(page==-1){
+					cout<<"Invalid Page!\n";
+					PI=3;
+				}
+				else
+					realAddress = page;
+				
+			}
+
+			else if(IR[0]=='H')
+				SI=3;
+
+			else if(IR[0]=='L' && IR[1]=='R')
+			{
+				page = alu->addressMap(atoi(IR+2),PCB.PTR);
+				if(page==-1){
+					//cout<<"Invalid Page!\n";
+					PI=3;
+				}
+				else
+					R = m->readByte(atoi(IR+3), page);
+					cout<<"LR: "<<R<<endl;
+			}
+
+			
+			else if(IR[0]=='S' && IR[1]=='R'){
+				page = alu->addressMap(atoi(IR+2),PCB.PTR);
+				
+				if(page==-1){
+					cout<<"Allocating!\n";
+					m->writeByte(atoi(IR+2), R, page, 1);
+				}
+				
+				else{
+					cout<<"Available!\n";
+					m->writeByte(atoi(IR+2), R, page, 0);
+				}
+
+			}
+
+			else if(IR[0]=='C' && IR[1]=='R'){
+				char *byte = new char();
+
+				page = alu->addressMap(atoi(IR+2), PCB.PTR);
+				if(page ==-1)
+					PI=3;
+
+				else{
+					byte = m->readByte(atoi(IR+3), page);
+					if(!strcmp(byte,R))
+						C=1;
+				}
+			}
+
+			else if(IR[0]=='B' && IR[1]=='T'){
+				if(C){
+					branch = atoi(IR+2);
+					//cout<<"branch: "<<branch<<endl;
+					j=10;
+				}
+				else
+					continue;
+			}
+			
+			if(PCB.TTC == PCB.TTL)
+				TI=2;
+			
+			cout<<"TTC: "<<PCB.TTC<<"TTL: "<<PCB.TTL<<endl;
+			cout<<"TLC: "<<PCB.TLC<<"TLL: "<<PCB.TLL<<endl;
+			//cout<<"SI: "<<SI<<"\tPI: "<<PI<<"\tTI: "<<TI<<endl;
+			if(SI || PI || TI){
+				this->mos();
+				SI=0;
+				PI=0;
+				TI=0;
+			}
+
+			//End of job
+			if(IR[0]=='H' || SI==3){
+				m->memmap();
+				terminate =1;
 				break;
 			}
+			IC++;
 		}
+		if(terminate)
+			break;
+		
 	}
-}
-
-int CPU::userMode(char *IR) {
-	
-	if(IR[0]=='G' && IR[1]=='D')
-	{
-		//cout<<"Exe: GD"<<endl;
-		SI=1;	
-		this->mos();
-	}	
-	
-	else if(IR[0]=='P' && IR[1]=='D')
-	{
-		//cout<<"Exe: PD"<<endl;
-		SI=2;
-		realAddress = alu->addressMap(atoi(IR+2), PCB.PTR);
-		this->mos();
-	}
-	
-	else if(IR[0]=='H')
-	{
-		//cout<<"Exe: H"<<endl;
-		SI=3;		
-		this->mos();
-	}
-
-	else if(IR[0]=='L' && IR[1]=='R') {
-		//cout<<"Exe: LR"<<endl;
-		if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
-		{
-			m->readByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR));
-			//cout<<R<<endl;
-		}
-		else {
-			cout << "Error: LR-address\n";
-			exit(2);
-		}
-	}
-	
-	else if(IR[0]=='S' && IR[1]=='R') {
-		if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
-			m->writeByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR),0);
-		//Dynamically Allocating 
-		else{
-			m->writeByte(atoi(IR+2), R, alu->addressMap(atoi(IR+2), PCB.PTR),1);
-			cout<<"-SR\n";
-		}
-	}
-
-	else if(IR[0]=='C' && IR[1]=='R')
-	{
-			char reg[5];
-			int flag=0;
-			
-			if(alu->addressMap(atoi(IR+2), PCB.PTR)!=-1)
-			{
-				m->readByte(atoi(IR+2), reg, alu->addressMap(atoi(IR+2), PCB.PTR));
-	
-				for(int i=0;i<4;i++)
-				{
-					if(R[i]!=reg[i]) {
-						flag=1;
-						break;
-					}	
-				}
-				if(!flag)
-					C=1;
-			}
-			
-			else{
-				cout<<"-CR\n";
-				exit(2);
-			}
-
-		//cout<<"C: "<<C<<endl;								
-	}
-
-	else if(IR[0]=='B' && IR[1]=='T') 
-	{
-		if(C) 
-			return atoi(IR+2);
-	}
-/*
-	else 
-	{
-		cout<<IR<<endl;
-		PI=1;
-		this->mos();
-	}
-*/
-	return -1;
 }
 
 void CPU::mos() {
 
 	switch(SI) {
 		
-		/*Load data from Buffer to Memory*/
-		case 1: cr->buffToMem(atoi(IR+2));
-			break;
+		case 1: if(!TI){
+					cr->buffToMem(atoi(IR+2));
+					//cout<<"Write to memory"<<endl;
+				}
+				else{
+					cout<<error_message(3);
+					terminate = 1;
+				}
+				break;
 				
-		/*Print data in output-file*/
-		case 2: lp->printLine(realAddress,output);
-			break;
+		case 2: if(!TI){
+
+					lp->printLine(realAddress,output);
+					//cout<<"Print to File"<<endl;
+				}
+				else{
+					//cout<<"Wrote"<<endl;
+					cout<<error_message(3);
+					terminate = 1;
+				}
+				break;
 			
 		case 3:
-			break;	
+				//cout << error_message(0);
+				fputc('\n',output);
 	}
-
+	
 	switch(PI) {
 
-		case 1:	cout<<"Operation Error!\n";
-			exit(2);
+		case 1:	if(!TI){
+					//cout<<error_message(4);
+				}
+				else{
+					//cout<<error_message(3);
+					//cout<<error_message(4);
+				}
+				break;
 		
-		case 2: cout<<"Operand Error!n";
-			break;
+		case 2: if(!TI){
+					//cout<<error_message(5);
+				}
+				else{
+					//cout<<error_message(3);
+					//cout<<error_message(5);
+				}
+				break;
 
-		case 3:	cout<<"Page Fault!\n";
+		case 3:	if(!TI){
+					cout<<"Yet to be handled!!\n";
+				}
+				else{
+					//cout<<error_message(3);
+				}
 	}
+	
 }
 
 void CPU::initialize_pcb(char *buffer) {

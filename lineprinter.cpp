@@ -13,6 +13,7 @@ LinePrinter::LinePrinter() {
 /*Write output to the outputFile*/
 void LinePrinter::printLine(int line, FILE *fp) {
 	m->readline(line,content);
+	//cout<<"PD content:"<<content<<endl;
 	fputs(content,fp);
 	fputc('\n',fp);
 }

@@ -24,17 +24,19 @@ class CPU {
 	/*Interrupts*/
 	int SI;
 	int PI;
-
+	int TI;
+	
 	/*Program Control Block*/
 	struct ProgramControlBlock PCB;	
 
 	FILE *fp;
 	FILE *output;
-	char IR[4];
-	char R[5];
+	char *R;
+	char *IR;
 	int IC;
 	bool C;
 	int realAddress;
+	int terminate;
 
 	char buffer[100];
 	int mode; //0-Master;1-Slave
@@ -46,7 +48,7 @@ class CPU {
 	int load();
 	void start(char *);
 	void execute();
-	int userMode(char *);
+	int userMode();
 	void mos();
 	void initialize_pcb(char *);
 	void display_pcb();

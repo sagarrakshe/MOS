@@ -20,7 +20,7 @@ void Memory::initialize() {
 	/*Memory initialized to 0*/
 	for(int i=0;i<30;i++)
 	for(int j=0;j<40;j++)
-		memory[i][j]='~';
+		memory[i][j]=' ';
 }
 
 void Memory::memmap() {
@@ -52,7 +52,7 @@ int Memory::instrLen() {
 	return memPtr;
 }
 
-void Memory::loadInMemory(char buffer[]) {
+void Memory::loadInMemory(char buffer[], int flag) {
 	
 	int randPage;
 	
@@ -64,19 +64,28 @@ void Memory::loadInMemory(char buffer[]) {
 	for(int i=0;(unsigned)i<strlen(buffer)-1;i++)
 		memory[randPage][i]=buffer[i];
 	//cout<<randPage/10<<randPage%10<<endl;
-	memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
-	memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
-	//cout<<"memPtr: "<<memPtr<<endl;
-	memPtr++;
+	if(flag){
+		memory[ptrPage][((flag/10)*4)+2] = (char)(((int)'0')+randPage/10);
+		memory[ptrPage][((flag/10)*4)+3] = (char)(((int)'0')+randPage%10);
+	}
+	else{
+		memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
+		memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
+		//cout<<"memPtr: "<<memPtr<<endl;
+		memPtr++;
+	}
 }
 
 /*Read Instruction from Memory*/
-void Memory::readByte(int IC, char *IR, int page) {
+char *Memory::readByte(int IC, int page) {
 
 	int i,j=0;
-	for(i=(IC%10)*4;i<((IC%10)*4+4);i++,j++) {
-		IR[j]=memory[page][i];
-	}
+	char *ir = new char();
+
+	for(i=(IC%10)*4;i<((IC%10)*4+4);++i,++j)
+		ir[j]=memory[page][i];
+	
+	return ir;
 }
 
 void Memory::writeByte(int IC, char *R, int page, int flag) {
@@ -88,12 +97,11 @@ void Memory::writeByte(int IC, char *R, int page, int flag) {
 		}while(frame[randPage]!=0);
 		frame[randPage] = 1;	
 		
-		memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
-		memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
+		memory[ptrPage][((IC/10)*4)+2] = (char)(((int)'0')+randPage/10);
+		memory[ptrPage][((IC/10)*4)+3] = (char)(((int)'0')+randPage%10);
 		memPtr++;
 
 		page = randPage;
-
 	}
 
 	for(int i=(IC%10)*4;i<(IC%10)*4+4;i++){

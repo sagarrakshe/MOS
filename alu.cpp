@@ -15,17 +15,12 @@ int ALU::genRand() {
 
 /*Map Virtual address into Real address*/
 int ALU::addressMap(int vir, int ptrPage) {
-	char temp[5];
-	//int real;
+	char *temp = new char();
 
-	m->readByte(vir/10, temp, ptrPage);
-	if(m->frame[atoi(temp+2)]){
-		m->readByte(vir/10, temp, ptrPage);
+	temp = m->readByte(vir/10, ptrPage);
+	if(m->frame[atoi(temp+2)])
 		return atoi(temp+2);
-	}
-	else {
-		cout<<"Invalid Page Fault!! ";
+	
+	else 
 		return -1;
-	}
-     
 }

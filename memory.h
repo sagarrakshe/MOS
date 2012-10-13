@@ -15,8 +15,8 @@ class Memory {
 
 	Memory();		
 	void initialize();
-	void loadInMemory(char *buffer);
-	void readByte(int , char *, int );
+	void loadInMemory(char * ,int );
+	char *readByte(int , int );
 	void readline(int ,char *);
 	void memmap();
 	void writeByte(int , char *, int, int );
