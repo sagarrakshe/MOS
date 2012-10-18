@@ -18,7 +18,6 @@ CardReader::CardReader() {
 /*Buffer-to-Memory*/
 void CardReader::buffToMem(int loc) {	
 	readBuffer(str);
-	//m->memPtr=loc/10;
 	m->loadInMemory(str,loc);
 }
 

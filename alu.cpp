@@ -18,7 +18,7 @@ int ALU::addressMap(int vir, int ptrPage) {
 	char *temp = new char();
 
 	temp = m->readByte(vir/10, ptrPage);
-	if(m->frame[atoi(temp+2)])
+	if(temp[0]=='1')
 		return atoi(temp+2);
 	
 	else 

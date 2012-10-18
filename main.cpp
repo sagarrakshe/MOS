@@ -44,7 +44,7 @@ void BuffMap() {
 
 void readBuffer(char *temp) {
 	int j=0;
-	
+
 	for(int i=0;i<40;i++)
 	temp[j++]=Buffer[BuffPtr%10][i];
 	temp[j]='\n';

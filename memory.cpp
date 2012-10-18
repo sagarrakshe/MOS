@@ -21,16 +21,18 @@ void Memory::initialize() {
 	for(int i=0;i<30;i++)
 	for(int j=0;j<40;j++)
 		memory[i][j]=' ';
+	for(int i=0;i<30;i++)
+		frame[i]=0;
 }
 
 void Memory::memmap() {
 	for(int i=0;i<30;i++) {
-		cout<<i<<"  ";
+		cout<<i;
 		for(int j=0;j<40;j++) {
 			if(!(j%4))	cout<<"|";
 			cout<<" "<<memory[i][j]<<" ";
 		}
-		cout<<endl;
+		cout<<frame[i]<<endl;
 	}
 	cout<<endl;
 }
@@ -40,8 +42,12 @@ int Memory::ptr_initialize() {
 	int page;
 	page = alu->genRand();
 
-	for(int i=0;i<40;i++)
-		memory[page][i]='@';
+	for(int i=0;i<40;i++){
+		if(!(i%4))
+			memory[page][i]='0';
+		else
+			memory[page][i]='@';
+	}
 	frame[page]=1;
 	ptrPage = page;
 
@@ -67,11 +73,12 @@ void Memory::loadInMemory(char buffer[], int flag) {
 	if(flag){
 		memory[ptrPage][((flag/10)*4)+2] = (char)(((int)'0')+randPage/10);
 		memory[ptrPage][((flag/10)*4)+3] = (char)(((int)'0')+randPage%10);
+		memory[ptrPage][((flag/10)*4)]='1';
 	}
 	else{
 		memory[ptrPage][((memPtr%10)*4)+2] = (char)(((int)'0')+randPage/10);
 		memory[ptrPage][((memPtr%10)*4)+3] = (char)(((int)'0')+randPage%10);
-		//cout<<"memPtr: "<<memPtr<<endl;
+		memory[ptrPage][((memPtr%10)*4)]='1';
 		memPtr++;
 	}
 }
@@ -99,7 +106,8 @@ void Memory::writeByte(int IC, char *R, int page, int flag) {
 		
 		memory[ptrPage][((IC/10)*4)+2] = (char)(((int)'0')+randPage/10);
 		memory[ptrPage][((IC/10)*4)+3] = (char)(((int)'0')+randPage%10);
-		memPtr++;
+		memory[ptrPage][((IC/10)*4)]='1';
+		//memPtr++;
 
 		page = randPage;
 	}

@@ -3,16 +3,30 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+
+using namespace std;
 
 class LinePrinter {
 
 	char content[100];
-	FILE *fp;
+	ofstream output;
 	
 	public:
 	
 	LinePrinter();
-	void printLine(int ,FILE *);
+	void printJobId(int );
+	void printLine(int );
+	void printError(char * );
+	void printInterrupt(int, int, int);
+	void printCounter(int, int);
+	void printIns(int , char *);
+	void close();
 
 };
 
