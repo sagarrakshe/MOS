@@ -11,6 +11,6 @@ step 3: make
 
 step 4: make clean
 
-step 5: ./MOS sample
+step 5: ./MOS input.txt
 
 You can replace sample with your JobFile.
